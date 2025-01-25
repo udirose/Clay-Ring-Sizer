@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ring Size Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 1.2em;
+      margin-bottom: 6px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .input-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    select,
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      font-size: 1rem;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .results p {
+      margin: 4px 0;
+    }
+    strong {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Ring Size Calculator</h1>
+
+  <div class="card">
+    <h2>Select a Clay:</h2>
+    <select id="claySelect">
+      <option value="" disabled selected>Choose a clay</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h2>Input Details:</h2>
+
+    <div class="input-group">
+      <label for="targetRingSize">Target Ring Size (US):</label>
+      <input type="number" id="targetRingSize" value="20" />
+    </div>
+
+    <div class="input-group">
+      <label for="bandThickness">Band Thickness (optional):</label>
+      <input type="number" id="bandThickness" value="6" />
+    </div>
+
+    <button id="calculateBtn">Calculate</button>
+  </div>
+
+  <div class="card results" id="resultsCard" style="display: none;">
+    <h2>Results</h2>
+    <p>Selected Clay: <strong id="resClay"></strong></p>
+    <p>Clay Shrinkage: <strong id="resShrinkage"></strong></p>
+    <p>Wet Make Size - Circumference (mm): <strong id="resWetCircumference"></strong></p>
+    <p>Wet Make Size - Diameter (mm): <strong id="resWetDiameter"></strong></p>
+    <p>Wet Make Size - US: <strong id="resWetRingSizeUS"></strong></p>
+    <p>Band Cut Length (mm): <strong id="resBandCutLengthMM"></strong></p>
+    <p>Band Cut Length (inches): <strong id="resBandCutLengthInches"></strong></p>
+  </div>
+
+  <script>
+    // List of clays
+    const clays = [
+      { name: "Art Clay Silver .999* (2)", shrinkage: 0.1255 },
+      { name: "Aussie Metal Clay Argentium v1", shrinkage: 0.1545 },
+      { name: "Aussie Metal Clay SS960* (3)", shrinkage: 0.1545 },
+      { name: "FYI .999 Silver* (4)", shrinkage: 0.1995 },
+      { name: "Metal Magic .999 Silver.", shrinkage: 0.1655 },
+      { name: "Prometheus Bronze Clay", shrinkage: 0.112 },
+      { name: "Hadars Copper Clay", shrinkage: 0.135 },
+      { name: "PMC Sterling Silver", shrinkage: 0.151 },
+      { name: "PMC Flex Clay", shrinkage: 0.15 },
+      { name: "Art Clay Copper", shrinkage: 0.11 },
+      { name: "Silver Smithing Clay", shrinkage: 0.142 },
+      { name: "PMC3 Silver Clay", shrinkage: 0.12 },
+      { name: "FS999 Silver Clay", shrinkage: 0.12 },
+      { name: "Goldie Bronze Clay", shrinkage: 0.14 },
+      { name: "PMC Gold Clay", shrinkage: 0.15 },
+      { name: "Metal Adventures Bronze", shrinkage: 0.131 },
+      { name: "Hadars Steel Clay", shrinkage: 0.11 },
+      { name: "EZ960 Sterling Silver", shrinkage: 0.132 },
+      { name: "Art Clay Gold", shrinkage: 0.15 },
+      { name: "Original PMC", shrinkage: 0.15 },
+      { name: "Hadars Brilliant Bronze", shrinkage: 0.131 },
+      { name: "PMC Sterling Clay", shrinkage: 0.151 },
+      { name: "CopprClay", shrinkage: 0.11 },
+      { name: "PMC Flex", shrinkage: 0.15 },
+      { name: "Aussie Metal Clay 950", shrinkage: 0.12 },
+      { name: "Hadars Smart Bronze", shrinkage: 0.141 },
+      { name: "Metal Magic Copper", shrinkage: 0.12 },
+      { name: "Silver Clay Standard", shrinkage: 0.122 },
+      { name: "Aussie Silver Clay", shrinkage: 0.123 },
+      { name: "Gold Clay Original", shrinkage: 0.153 },
+      { name: "PMC Paper Clay", shrinkage: 0.12 },
+      { name: "PMC+ Silver Clay", shrinkage: 0.128 },
+      { name: "PMC Aqua Clay", shrinkage: 0.126 },
+      { name: "Metal Magic Gold", shrinkage: 0.15 },
+      { name: "Hadars Friendly Copper", shrinkage: 0.115 },
+      { name: "EZ960 Silver Clay", shrinkage: 0.12 },
+      { name: "PMC Sterling Plus", shrinkage: 0.151 },
+      { name: "PMC Copper Plus", shrinkage: 0.115 },
+      { name: "Art Clay Iron", shrinkage: 0.1 },
+      { name: "Goldie Steel Clay", shrinkage: 0.12 },
+      { name: "PMC Flex Plus", shrinkage: 0.15 },
+      { name: "PMC Sterling Flex", shrinkage: 0.15 },
+      { name: "Art Clay Bronze", shrinkage: 0.131 },
+      { name: "Aussie Smart Bronze", shrinkage: 0.14 },
+    ];
+
+    // Ring size to circumference mapping
+    const ringSizeToCircumference = [
+      { size: 4.0, circumference: 46.8 },
+      { size: 4.25, circumference: 47.4 },
+      { size: 4.5, circumference: 48.0 },
+      { size: 4.75, circumference: 48.7 },
+      { size: 5.0, circumference: 49.3 },
+      { size: 5.25, circumference: 50.0 },
+      { size: 5.5, circumference: 50.6 },
+      { size: 5.75, circumference: 51.2 },
+      { size: 6.0, circumference: 51.9 },
+      { size: 6.25, circumference: 52.5 },
+      { size: 6.5, circumference: 53.1 },
+      { size: 6.75, circumference: 53.8 },
+      { size: 7.0, circumference: 54.4 },
+      { size: 7.25, circumference: 55.0 },
+      { size: 7.5, circumference: 55.7 },
+      { size: 7.75, circumference: 56.3 },
+      { size: 8.0, circumference: 57.0 },
+      { size: 8.25, circumference: 57.6 },
+      { size: 8.5, circumference: 58.3 },
+      { size: 8.75, circumference: 58.9 },
+      { size: 9.0, circumference: 59.5 },
+      { size: 9.25, circumference: 60.2 },
+      { size: 9.5, circumference: 60.8 },
+      { size: 9.75, circumference: 61.4 },
+      { size: 10.0, circumference: 62.1 },
+      { size: 10.25, circumference: 62.7 },
+      { size: 10.5, circumference: 63.3 },
+      { size: 10.75, circumference: 64.0 },
+      { size: 11.0, circumference: 64.6 },
+      { size: 11.25, circumference: 65.2 },
+      { size: 11.5, circumference: 65.9 },
+      { size: 11.75, circumference: 66.5 },
+      { size: 12.0, circumference: 67.2 },
+      { size: 12.25, circumference: 67.8 },
+      { size: 12.5, circumference: 68.4 },
+      { size: 12.75, circumference: 69.1 },
+      { size: 13.0, circumference: 69.7 },
+      { size: 13.25, circumference: 70.3 },
+      { size: 13.5, circumference: 71.0 },
+      { size: 13.75, circumference: 71.6 },
+      { size: 14.0, circumference: 72.3 },
+      { size: 14.25, circumference: 72.9 },
+      { size: 14.5, circumference: 73.6 },
+      { size: 14.75, circumference: 74.2 },
+      { size: 15.0, circumference: 74.8 },
+      { size: 15.25, circumference: 75.5 },
+      { size: 15.5, circumference: 76.1 },
+      { size: 15.75, circumference: 76.7 },
+      { size: 16.0, circumference: 77.4 },
+      { size: 16.25, circumference: 78.0 },
+      { size: 16.5, circumference: 78.6 },
+      { size: 16.75, circumference: 79.3 },
+      { size: 17.0, circumference: 79.9 },
+      { size: 17.25, circumference: 80.5 },
+      { size: 17.5, circumference: 81.2 },
+      { size: 17.75, circumference: 81.8 },
+      { size: 18.0, circumference: 82.4 },
+      { size: 18.25, circumference: 83.1 },
+      { size: 18.5, circumference: 83.7 },
+      { size: 18.75, circumference: 84.3 },
+      { size: 19.0, circumference: 85.0 },
+      { size: 19.25, circumference: 85.6 },
+      { size: 19.5, circumference: 86.2 },
+      { size: 19.75, circumference: 86.9 },
+      { size: 20.0, circumference: 87.5 },
+    ];
+
+    // Populate the dropdown
+    const claySelect = document.getElementById('claySelect');
+    clays.forEach(clay => {
+      const option = document.createElement('option');
+      option.value = clay.name;
+      option.textContent = clay.name;
+      claySelect.appendChild(option);
+    });
+
+    // Grab elements
+    const targetRingSizeInput = document.getElementById('targetRingSize');
+    const bandThicknessInput = document.getElementById('bandThickness');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const resultsCard = document.getElementById('resultsCard');
+
+    const resClay = document.getElementById('resClay');
+    const resShrinkage = document.getElementById('resShrinkage');
+    const resWetCircumference = document.getElementById('resWetCircumference');
+    const resWetDiameter = document.getElementById('resWetDiameter');
+    const resWetRingSizeUS = document.getElementById('resWetRingSizeUS');
+    const resBandCutLengthMM = document.getElementById('resBandCutLengthMM');
+    const resBandCutLengthInches = document.getElementById('resBandCutLengthInches');
+
+    // Calculate function
+    function calculateSizes() {
+      const selectedClay = claySelect.value;
+      if (!selectedClay) {
+        alert('Please choose a clay');
+        return;
+      }
+
+      const targetRingSize = parseFloat(targetRingSizeInput.value) || 0;
+      const bandThickness = parseFloat(bandThicknessInput.value) || 0;
+
+      // Find the clay's shrinkage
+      const clayObject = clays.find(clay => clay.name === selectedClay);
+      if (!clayObject) {
+        alert('Invalid clay selected');
+        return;
+      }
+      const shrinkage = clayObject.shrinkage;
+
+      // Find the circumference for the target ring size
+      const ringData = ringSizeToCircumference.find(entry => entry.size === targetRingSize);
+      const ringCircumference = ringData ? ringData.circumference : 0;
+
+      // Calculations
+      const wetCircumference = ringCircumference / (1 - shrinkage);
+      const wetDiameter = wetCircumference / Math.PI;
+      
+      // Attempt to find a US ring size that matches the new circumference 
+      // (rounded to one decimal)
+      const wetRingSizeMatch = ringSizeToCircumference.find(entry =>
+        entry.circumference.toFixed(1) === wetCircumference.toFixed(1)
+      );
+      const wetRingSizeUS = wetRingSizeMatch ? wetRingSizeMatch.size : 'N/A';
+
+      // Band cut length
+      const bandCutLengthMM = (((bandThickness * 0.75) * 0.25) + (wetCircumference / Math.PI)) * Math.PI;
+      const bandCutLengthInches = bandCutLengthMM / 25.4;
+
+      // Display results
+      resultsCard.style.display = 'block';
+      resClay.textContent = selectedClay;
+      resShrinkage.textContent = (shrinkage * 100).toFixed(2) + '%';
+      resWetCircumference.textContent = wetCircumference.toFixed(2);
+      resWetDiameter.textContent = wetDiameter.toFixed(2);
+      resWetRingSizeUS.textContent = wetRingSizeUS;
+      resBandCutLengthMM.textContent = bandCutLengthMM.toFixed(2);
+      resBandCutLengthInches.textContent = bandCutLengthInches.toFixed(2);
+    }
+
+    calculateBtn.addEventListener('click', calculateSizes);
+  </script>
+
+</body>
+</html>
